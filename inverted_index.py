@@ -2,7 +2,9 @@ import MapReduce
 import sys
 
 """
-Word Count Example in the Simple Python MapReduce Framework
+Inverted Index using Simple Python MapReduce Framework
+$ python inverted_index.py input_json/books.json
+
 """
 
 mr = MapReduce.MapReduce()
@@ -33,3 +35,4 @@ def reducer(key, list_of_values):
 if __name__ == '__main__':
   inputdata = open(sys.argv[1])
   mr.execute(inputdata, mapper, reducer)
+
