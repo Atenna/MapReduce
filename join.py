@@ -2,34 +2,43 @@ import MapReduce
 import sys
 
 """
-Word Count Example in the Simple Python MapReduce Framework
+Query like: 
+SELECT * 
+FROM Orders, LineItem 
+WHERE Order.order_id = LineItem.order_id
+implemented in Simple Python Map Reduce Framework
+
+$ python join.py input_json/records.json
 """
 
+keysB = []
+valuesA = []
 mr = MapReduce.MapReduce()
 
-# =============================
-# Do not modify above this line
-
-def mapper(record):
-    # key: document identifier
-    # value: document contents
-    key = record[0]
-    value = record[1]
-    words = value.split()
-    for w in words:
-      mr.emit_intermediate(w, record[0])
+def mapper(record): # record could look like ["order", "1" (this is order_id), "36901", "O", ...]
+    # key: row identifier
+    # value: single table row
+    key = record[1]
+    value = record
+    for item in record:
+      mr.emit_intermediate(key, item) 
+    # key = '1', value = ('order','1','36901','0',..)
+    if (record[0] == "order"):
+	keysB.append(record)
+    else:
+	valuesA.append(record)
 
 def reducer(key, list_of_values):
     # key: word
-    # value: list of occurrence counts
-    total = []
-    for v in list_of_values:
-      if (v not in total):
-        total.append(v)
-    mr.emit((key, total))
+    # value: row in a table with key as identificator
+    global keysB
+    global valuesA
+    for keyB in keysB:
+      for valueA in valuesA:
+        if(valueA[1] == keyB[1]):
+	  mr.emit((keyB + valueA))
+          valuesA.remove(valueA)
 
-# Do not modify below this line
-# =============================
 if __name__ == '__main__':
-  inputdata = open(sys.argv[1])
+  inputdata = open(sys.argv[1]) 
   mr.execute(inputdata, mapper, reducer)
